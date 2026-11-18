@@ -5,7 +5,7 @@
 <br><br><br><br><br><br><br>
 <p align="center">Лабораторная работа №8</p>
 <p align="center">По дисциплине “Аппаратное и Программное обеспечение сетей”</p>
-<p align="center">Тема: “НАСТРОЙКА МАРШРУТИЗАЦИИ ПО УМОЛЧАНИЮ НА УСТРОЙСТВАХ CISCO”</p>
+<p align="center">Тема: “Утилита для сканирования и исследования безопасности сети NMAP”</p>
 <p align="center">Вариант: 7</p>
 <br><br><br><br><br>
 <p align="right">Выполнил:</p>
@@ -21,89 +21,192 @@
 
 # Цель
 
-Настроить на устройствах маршрут по умолчанию и распространить его по всей сети.
+Изучение и практическое применение утилиты для сканирования и
+исследования безопасности сети nmap.
 
 # Ход работы
 
-## Практическая часть
+## Задание 1
 
-Топология сети до настройки:
+Получите список открытых портов (TCP и UDP) машины, за которой выполняется
+лабораторная работа (localhost). Воспользуйтесь несколькими методами
+сканирования. Сравните результаты.
 
-![practice_network](./img/practice_network.png)
+### 1.1 Базовое сканирование портов
 
-Вспомогательная таблица:
+1) Выполним базовое сканирование
 
-| Device | Interface | IP Address | Mask | Default Gateway |
-| :--- | :--- | :--- | :--- | :--- |
-| **R1** | **Fa0/0** | 192.168.1.1 | 255.255.255.0 | N/A |
-| **R1** | **Fa0/1** | 10.0.0.1 | 255.255.255.252 | N/A |
-| **R1** | **Se0/0/0** | 10.0.0.9 | 255.255.255.252 | N/A |
-| | | | | |
-| **R2** | **Fa0/0** | 192.168.2.1 | 255.255.255.0 | N/A |
-| **R2** | **Fa0/1** | 10.0.0.2 | 255.255.255.252 | N/A |
-| **R2** | **Se0/0/1** | 10.0.0.6 | 255.255.255.252 | N/A |
-| | | | | |
-| **R3** | **Fa0/0** | 192.168.3.1 | 255.255.255.0 | N/A |
-| **R3** | **Se0/0/0** | 10.0.0.10 | 255.255.255.252 | N/A |
-| **R3** | **Se0/0/1** | 10.0.0.5 | 255.255.255.252 | N/A |
-| | | | | |
-| **PC1** | N/A | 192.168.1.10 | 255.255.255.0 | 192.168.1.1 |
-| **PC2** | N/A | 192.168.2.10 | 255.255.255.0 | 192.168.2.1 |
-| **Web-server** | N/A | 192.168.3.10 | 255.255.255.0 | 192.168.3.1 |
+Команда: `nmap scanme.nmap.org`
 
-После настройки получим:
+Результат:
+```
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-11-18 21:37 +03
+Nmap scan report for scanme.nmap.org (45.33.32.156)
+Host is up (0.20s latency).
+Other addresses for scanme.nmap.org (not scanned): 2600:3c01::f03c:91ff:fe18:bb2f
+Not shown: 995 closed tcp ports (conn-refused)
+PORT     STATE    SERVICE
+9/tcp    filtered discard
+22/tcp   open     ssh
+25/tcp   filtered smtp
+80/tcp   open     http
+9929/tcp open     nping-echo
 
-![practice_network_active](./img/practice_network_active.png)
+Nmap done: 1 IP address (1 host up) scanned in 16.36 seconds
+```
 
-Проверим работоспособность:
+2) Выполним SYN-сканирование
 
-![practice_ping_pc3_to_pc1](./img/practice_browser.png)
+Команда: `sudo nmap -sS scanme.nmap.org`
 
-## Индивидуальное задание
+Результат:
+```
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-11-18 21:38 +03
+Nmap scan report for scanme.nmap.org (45.33.32.156)
+Host is up (0.20s latency).
+Other addresses for scanme.nmap.org (not scanned): 2600:3c01::f03c:91ff:fe18:bb2f
+Not shown: 995 closed tcp ports (reset)
+PORT     STATE    SERVICE
+9/tcp    filtered discard
+22/tcp   open     ssh
+25/tcp   filtered smtp
+80/tcp   open     http
+9929/tcp open     nping-echo
 
-Ввиду того, что у меня 7 вариант, схема топологии будет следующей:
+Nmap done: 1 IP address (1 host up) scanned in 11.65 seconds
+```
 
-![task_scheme](./img/task_scheme.png)
+3) Выполним TCP connect-сканирование
 
-И сама топология до настройки:
+Команда: `nmap -sT scanme.nmap.org`
 
-![task_network](./img/task_network.png)
+Результат:
+```
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-11-18 21:38 +03
+Nmap scan report for scanme.nmap.org (45.33.32.156)
+Host is up (0.20s latency).
+Other addresses for scanme.nmap.org (not scanned): 2600:3c01::f03c:91ff:fe18:bb2f
+Not shown: 995 closed tcp ports (conn-refused)
+PORT     STATE    SERVICE
+9/tcp    filtered discard
+22/tcp   open     ssh
+25/tcp   filtered smtp
+80/tcp   open     http
+9929/tcp open     nping-echo
 
-Составим вспомогательную таблицу:
+Nmap done: 1 IP address (1 host up) scanned in 13.07 seconds
+```
 
-| Устройство | Интерфейс | IP-адрес | Маска | Шлюз по умолчанию |
-| :--- | :--- | :--- | :--- | :--- |
-| **R1** | Fa0/0 (к PC1) | 192.168.1.1 | 255.255.255.0 | N/A |
-| **R1** | Fa0/1 (к R3) | 10.1.1.1 | 255.255.255.252 | N/A |
-| **R1** | Se0/0/0 (к R2) | 10.1.1.5 | 255.255.255.252 | N/A |
-| | | | | |
-| **R2** | Fa0/0 (к PC2) | 192.168.2.1 | 255.255.255.0 | N/A |
-| **R2** | Se0/0/0 (к R1) | 10.1.1.6 | 255.255.255.252 | N/A |
-| **R2** | Se0/0/1 (к R4) | 10.1.1.9 | 255.255.255.252 | N/A |
-| | | | | |
-| **R3** | Fa0/0 (к PC3) | 192.168.3.1 | 255.255.255.0 | N/A |
-| **R3** | Fa0/1 (к R1) | 10.1.1.2 | 255.255.255.252 | N/A |
-| **R3** | Se0/0/0 (к R4) | 10.1.1.13 | 255.255.255.252 | N/A |
-| | | | | |
-| **R4** | Fa0/0 (к Web) | 192.168.4.1 | 255.255.255.0 | N/A |
-| **R4** | Se0/0/0 (к R2) | 10.1.1.10 | 255.255.255.252 | N/A |
-| **R4** | Se0/0/1 (к R3) | 10.1.1.14 | 255.255.255.252 | N/A |
-| | | | | |
-| **PC1** | N/A | 192.168.1.10 | 255.255.255.0 | 192.168.1.1 |
-| **PC2** | N/A | 192.168.2.10 | 255.255.255.0 | 192.168.2.1 |
-| **PC3** | N/A | 192.168.3.10 | 255.255.255.0 | 192.168.3.1 |
-| **Web** | N/A | 192.168.4.10 | 255.255.255.0 | 192.168.4.1 |
+Полученные результаты приведу в таблице для сравнения
 
-После настройки получим:
+| Метод сканирования | Порт | Состояние | Сервис |
+| --- | --- | --- | --- |
+| Базовое сканирование | `9/tcp` | `filtered` | `discard` |
+| | `22/tcp ` | `open` | `ssh` |
+| | `25/tcp` | `filtered` | `smtp` |
+| | `80/tcp` | `open` | `http` |
+| | `9929/tcp` | `open` | `nping-echo` |
+| SYN-сканирование | `9/tcp` | `filtered` | `discard` |
+| | `22/tcp ` | `open` | `ssh` |
+| | `25/tcp` | `filtered` | `smtp` |
+| | `80/tcp` | `open` | `http` |
+| | `9929/tcp` | `open` | `nping-echo` |
+|  TCP connect-сканирование | `9/tcp` | `filtered` | `discard` |
+| | `22/tcp ` | `open` | `ssh` |
+| | `25/tcp` | `filtered` | `smtp` |
+| | `80/tcp` | `open` | `http` |
+| | `9929/tcp` | `open` | `nping-echo` |
 
-![task_network_active](./img/task_network_active.png)
+### 1.2 Сканирование диапазона портов и конкретных портов
 
-Проверим работоспособность:
+1) Просканируем популярные порты
 
-![task_ping_pc3_to_pc1](./img/task_ping_pc3_to_pc1.png)
+Команда: `nmap -p 1-1000 scanme.nmap.org`
+
+Результат:
+```
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-11-18 21:56 +03
+Nmap scan report for scanme.nmap.org (45.33.32.156)
+Host is up (0.20s latency).
+Other addresses for scanme.nmap.org (not scanned): 2600:3c01::f03c:91ff:fe18:bb2f
+Not shown: 996 closed tcp ports (conn-refused)
+PORT   STATE    SERVICE
+9/tcp  filtered discard
+22/tcp open     ssh
+25/tcp filtered smtp
+80/tcp open     http
+
+Nmap done: 1 IP address (1 host up) scanned in 13.93 seconds
+```
+
+2) Просканируем конкретные порты
+
+Команда: `nmap -p 22,80,443 scanme.nmap.org`
+
+Результат:
+```
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-11-18 21:59 +03
+Nmap scan report for scanme.nmap.org (45.33.32.156)
+Host is up (0.25s latency).
+Other addresses for scanme.nmap.org (not scanned): 2600:3c01::f03c:91ff:fe18:bb2f
+
+PORT    STATE  SERVICE
+22/tcp  open   ssh
+80/tcp  open   http
+443/tcp closed https
+
+Nmap done: 1 IP address (1 host up) scanned in 0.55 seconds
+```
+
+### 1.3 Определение версий служб
+
+1) Запустим сканирование с определением версий
+
+Команда: `nmap -sV scanme.nmap.org`
+
+Результат:
+```
+
+```
+
+2) Усилим определение версий 
+
+Команда: `nmap -sV --version-idensity 9 scanme.nmap.org`
+
+Результат:
+```
+
+```
+
+## Задание 2
+
+Определите операционную систему этой же машины.
+
+
+
+## Задание 3
+
+Узнайте адреса активных хостов в сети лаборатории (без сканирования портов).
+
+## Задание 4
+
+Просканируйте хост №1, разными методами. Сравните результаты.
+
+## Задание 5
+
+Для четырех хостов (№2-5), выполните следующие действия:
+
+### 5.1 Определите, защищен ли хост межсетевым экраном
+
+### 5.2 Определите поддерживаемые протоколы.
+
+### 5.3 Выберите оптимальный метод сканирования портов, чтобы избежать обнаружения. Определите открытые и фильтрованные порты и по возможности версии служб. При необходимости используйте RPC-сканирование.
+
+### 5.4 Определите операционную систему.
+
 
 ---
 
 # Выводы
 
-В ходе выполнения лабораторной работы я изучил возможность настраивать динамическую маршрутизацию в Cisco Packet Tracer.
+В ходе выполнения лабораторной работы я примененил утилиты для сканирования и исследования безопасности сети nmap.
